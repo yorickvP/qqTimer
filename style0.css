@@ -6,3 +6,15 @@
  cursor: pointer }
 span.b:hover {
  color: red }
+ .section_hdr {
+ 	font-weight: bold;
+ 	padding-left: 1em;
+ 	border-bottom: 1px solid black;
+ }
+ .section_left {
+ 	width: 5em;
+ 	float: left;
+ }
+ .section_left:after {
+ 	content: ":";
+ }

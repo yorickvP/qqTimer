@@ -1,4 +1,5 @@
-﻿var startTime;
+﻿/* jshint esversion: 6, browser: true, -W041 */
+var startTime;
 var curTime;
 var inspectionTime;
 var timerStatus; // 0 = stopped, 1 = running, 2 = inspecting, 3 = waiting, 4 = memo
@@ -12,7 +13,6 @@ var importScrambles=[];
 var timerID;
 var inspectionID;
 var memoID;
-var timerupdate = 1;
 var highlightStart;
 var highlightStop;
 var highlightID;
@@ -22,12 +22,21 @@ var nightMode = false;
 
 function $(str){return document.getElementById(str);}
 
+function loadsettings() {
+  return {
+    styleName: "style" + getCookie('style', 0) + ".css",
+    timerupdate: getCookie('timerupdate', 1),
+    timerSize: getCookie("timerSize", 2)
+  };
+}
+
+var settings = loadsettings();
+timerupdate = settings.timerupdate;
 
 // #################### TIMER STUFF ####################
 
 // deal with styles
-var styleName = "style" + ((a=getCookie("style"))==null?0:a) + ".css";
-document.writeln("<link rel='stylesheet' type='text/css' href='"+styleName+"'>");
+document.writeln(`<link rel='stylesheet' type='text/css' href='${settings.styleName}'>`);
 
 // firefox 9.0.1 bugfix
 window.onkeydown = function(event) {checkKey(event.keyCode); };
@@ -37,7 +46,7 @@ function initialize(lookForTimes, checkQueryString) {
  loadOptBoxes();
  var query = ""; // query string for scrambles
  if (checkQueryString) {
-  var query = window.location.search.substring(1);
+  query = window.location.search.substring(1);
  }
  if (lookForTimes) {
   getSession(); // see if there is a session saved
@@ -51,7 +60,7 @@ function initialize(lookForTimes, checkQueryString) {
  showOptions = 0;
  //toggleOptions(); // options are shown by default
  avgSizes = [50,5,12,100,1000];
- moSize = 3
+ moSize = 3;
  bestAvg = [[-1,0],[-1,0],[-1,0],[-1,0],[-1,0]];
  lastAvg = [[-1,0],[-1,0],[-1,0],[-1,0],[-1,0]];
  bestMo = [-1,0];
@@ -66,52 +75,44 @@ function initialize(lookForTimes, checkQueryString) {
  if (timerStatus != 0) {clearInterval(timerID); clearInterval(inspectionID);}
  timerStatus = 3;
 
- timerupdate = (a=getCookie("timerupdate"))===null ? 1 : a;
- $('toggler').innerHTML =
-	(timerupdate==0) ? "off" :
-	(timerupdate==1) ? "on" :
-	(timerupdate==2) ? "seconds only" :
-	"inspection only";
- useMilli = (a=getCookie("useMilli"))===null ? 0 : a;
+ $('toggler').innerHTML = ["off", "on", "seconds only", "inspection only"][timerupdate];
+ useMilli = getCookie("useMilli", 0);
  $('millisec').innerHTML = (useMilli==1) ? "1\/1000 sec" : "1\/100 sec";
  var oldManualEnter = manualEnter;
- manualEnter = (a=getCookie("manualEnter"))===null ? 0 : a;
+ manualEnter = getCookie("manualEnter", 0);
  if (manualEnter!=oldManualEnter) {
   toggleInput();
   manualEnter = 1-manualEnter;
  }
- $('tcol').value = (a=getCookie("tColor"))===null ? "00ff00" : a;
- $('bcol').value = (a=getCookie("bColor"))===null ? "white" : a;
- $('fcol').value = (a=getCookie("fColor"))===null ? "black" : a;
- $('lcol').value = (a=getCookie("lColor"))===null ? "blue" : a;
- $('hcol').value = (a=getCookie("hColor"))===null ? "yellow" : a;
- $('memcol').value = (a=getCookie("memColor"))===null ? "green" : a;
+ $('tcol').value = getCookie("tColor", "00ff00");
+ $('bcol').value = getCookie("bColor", "white");
+ $('fcol').value = getCookie("fColor", "black");
+ $('lcol').value = getCookie("lColor", "blue");
+ $('hcol').value = getCookie("hColor", "yellow");
+ $('memcol').value = getCookie("memColor", "green");
  $('inputTimes').innerHTML = (manualEnter==1) ? "typing" : "timer";
  $('theTime').innerHTML = (manualEnter==1) ?
   "<input id='timeEntry' size=12 style='font-size:100%'>"+
   " <span onclick='stopTimer(13);' class='a' style='color:"+
   parseColor($('lcol').value)+"'>enter</span>" : "ready";
- timerSize = (a=getCookie("timerSize"))===null ? 2 : a;
- $('theTime').style.fontSize = timerSize + "em";
- scrambleSize = (a=getCookie("scrSize"))===null ? 16 : parseInt(a,10);
+ scrambleSize = +getCookie("scrSize", 16);
  $('scramble').style.fontSize = scrambleSize + "px";
  $('getlast').style.fontSize = scrambleSize + "px";
- $('theList').style.height = Math.max(16, (timerSize * 1.5)) + "em";
- $('stats').style.height = Math.max(16, (timerSize * 1.5)) + "em";
- inspection = (a=getCookie("inspection"))===null ? 0 : a;
+ applyTimerSize();
+ inspection = getCookie("inspection", 0);
  $('inspec').innerHTML = (inspection==1) ? "WCA" : "no";
- if (inspection==0) { useBld = (a=getCookie("useBld"))===null ? 0 : a; }
+ if (inspection==0) { useBld = getCookie("useBld", 0); }
  else { useBld = 0; setCookie("useBld", 0); }
  $('bldmode').innerHTML = (useBld==1) ? "on" : "off";
- useAvgN = (a=getCookie("useAvgN"))===null ? 0 : a;
+ useAvgN = getCookie("useAvgN", 0);
  $('avgn').innerHTML = (useAvgN==1) ? "using" : "not using";
- useMoN = (a=getCookie("useMoN"))===null ? 0 : a;
+ useMoN = getCookie("useMoN", 0);
  $('mon').innerHTML = (useMoN==1) ? "using" : "not using";
- useMono = (a=getCookie("useMono"))===null ? 0 : a;
+ useMono = getCookie("useMono", 0);
  $('monospace').innerHTML = (useMono==1) ? "on" : "off";
  $('scramble').style.fontFamily = (useMono==1) ? "monospace" : "serif";
  $('getlast').style.color = parseColor($('lcol').value);
- type = (a=getCookie("scrType"))===null ? "333" : a;
+ type = getCookie("scrType", "333");
  if (query.length > 0) type = query;
  
  loadList();
@@ -297,18 +298,18 @@ function updateInspec() {
 
 function getTime(note) {
  curTime = new Date();
- 
+ var time, mtime;
  if (useBld==1) { 
-  var time = curTime.getTime() - memoTime.getTime(); 
-  var mtime = startTime.getTime() - memoTime.getTime();	
+  time = curTime.getTime() - memoTime.getTime(); 
+  mtime = startTime.getTime() - memoTime.getTime();	
  } 
  else {
-  var time = curTime.getTime() - startTime.getTime();
+  time = curTime.getTime() - startTime.getTime();
  }
  times[times.length] = time;
  notes[notes.length] = note;
  if (useBld==1) { 
-  comments[comments.length] = pretty(mtime) 
+  comments[comments.length] = pretty(mtime) ;
  }
  else { 
   comments[comments.length] = ""; 
@@ -354,6 +355,7 @@ function resetTimes() {
  }
 }
 
+var added_event_listener = false;
 function loadList() {
  var data = [-1,[null],[null]];
  var s = "times (<span onclick='resetTimes();' class='a'>reset</span>, <span onclick='toggleImport();' class='a'>import</span>):<br>"
@@ -367,25 +369,52 @@ function loadList() {
    data = getAvgSD(highlightStart, highlightStop - highlightStart + 1, false);
   }
  }
- for (var i = 0; i < times.length; i++) {
-  if (i == highlightStart) {s += "<span style='background-color: " + highlightColor + "'>";}
-  if (data[1].indexOf(i-highlightStart)>-1 || data[2].indexOf(i-highlightStart)>-1) s += "(";
-  var time = times[i];
-  if (notes[i] == 0) {s += "<span onclick='del(" + i + ");' class='b'>" + pretty(time);}
-  else if (notes[i] == 2) {s += "<span onclick='del(" + i + ");' class='b'>" + pretty(time + 2000) + "+";}
-  else {s += "<span onclick='del(" + i + ");' class='b'>DNF(" + pretty(time) + ")";}
-  s += (comments[i] ? "[" + comments[i] + "]" : "") + "<\/span>";
-  if (data[1].indexOf(i-highlightStart)>-1 || data[2].indexOf(i-highlightStart)>-1) s += ")";
-  if (i == highlightStop) {s += "<\/span>";}
-  s += (i == times.length - 1) ? " " : ", ";
+ function surround(condition, a, b, c) {
+  return condition ? (a + c + b) : c;
  }
+ var time_spans = new Array(times);
+ for (var i = 0; i < times.length; i++) {
+  time_spans[i] = {
+    id: i,
+    time: notes[i] == 2 ? times[i] + 2000 : times[i],
+    dnf: notes[i] != 0 && notes[i] != 2,
+    comment: comments[i] ? `[${comments[i]}]` : '',
+    starthighlight: i == highlightStart,
+    stophighlight: i == highlightStop,
+    //highlight: i >= highlightStart && i <= highlightstop,
+    emph: data[1].indexOf(i-highlightStart)>-1 || data[2].indexOf(i-highlightStart)>-1,
+  };
+ }
+ s = time_spans.map((time) => {
+  let ret = '';
+  if (time.starthighlight) ret += `<span style='background-color: ${highlightColor}'>`;
+  ret += `<span class='b' data-id='${time.id}'>`;
+  ret += surround(time.dnf, "DNF(", ")", surround(time.emph, "(", ")", pretty(time.time)));
+  ret += time.comment;
+  ret += `</span>`;
+  if (time.stophighlight)  ret += `</span>`;
+  return ret;
+ }).join(', ');
  $('theList').innerHTML = s;
  saveSession();
  // move scrollbar to bottom:
  var window = $('theList');
  window.scrollTop = window.scrollHeight;
  changeColor();
+ if (!added_event_listener) {
+    $('theList').addEventListener('click', function(evt) {
+      console.log(evt);
+      var x = evt.target;
+      while(x != $('theList') && x.getAttribute('data-id') === undefined) x = x.parentNode;
+      console.log(x)
+      if (x == $('theList')) return;
+      var id = +x.getAttribute('data-id');
+      del(id);
+    }, false);
+    added_event_listener = true;
+ }
 }
+
 
 function del(index) {
  if (confirm("Are you sure you want to delete the " +
@@ -448,7 +477,6 @@ function getBrowser() {
 var useMilli = 0;
 var manualEnter = 0;
 var showOptions = 0;
-var timerSize = 2;
 var scrambleSize = 16;
 var inspection = 0;
 var useBld = 0;
@@ -520,18 +548,22 @@ function toggleOptions() {
 }
 
 function increaseSize() {
- timerSize++;
- setCookie("timerSize", timerSize);
- $('theTime').style.fontSize = timerSize + "em"; $('theList').style.height = Math.max(16, (timerSize * 1.5)) + "em";
- $('stats').style.height = Math.max(16, (timerSize * 1.5)) + "em";
+ settings.timerSize++;
+ setCookie("timerSize", settings.timerSize);
+ applyTimerSize();
 }
 
 function decreaseSize() {
- if (timerSize >= 2) timerSize--;
- setCookie("timerSize", timerSize);
+ if (settings.timerSize >= 2) settings.timerSize--;
+ setCookie("timerSize", settings.timerSize);
+ applyTimerSize();
+}
+
+function applyTimerSize() {
+  var timerSize = settings.timerSize;
  $('theTime').style.fontSize = timerSize + "em";
- $('theList').style.height = Math.max(16, (timerSize * 1.5)) + "em";
- $('stats').style.height = Math.max(16, (timerSize * 1.5)) + "em";
+ $('theList').style.height = Math.max(20, (timerSize * 1.5)) + "em";
+ $('stats').style.height = Math.max(20, (timerSize * 1.5)) + "em";
 }
 
 function increaseScrambleSize() {
@@ -577,31 +609,36 @@ function toggleStatView() {
 }
 
 function changeColor() {
- $('menu').bgColor = parseColor($('tcol').value);
+  var cols = {};
+ ;["tcol", "bcol", "fcol", "lcol", "hcol", "memcol"].forEach((color) => {
+  cols[color] = parseColor($(color).value);
+  $(color + "_ex").style.color = cols[color];
+ });
+ $('menu').bgColor = cols.tcol;
  if (nightMode) {
   document.bgColor = "#000";
   document.body.style.color = "#fff";
  } else {
-  document.bgColor = parseColor($('bcol').value);
-  document.body.style.color = parseColor($('fcol').value);
+  document.bgColor = cols.bcol;
+  document.body.style.color = cols.fcol;
  }
 
  if (getBrowser() != "IE") {
   var links = document.getElementsByClassName('a');
   for (var i = 0; i < links.length; i++) {
-   links[i].style.color = parseColor($('lcol').value);
+   links[i].style.color = cols.lcol;
   }
  } else {
   var links = document.getElementsByTagName('span');
   for (var i = 0; i < links.length; i++) {
    if (links[i].className == "a") {
-    links[i].style.color = parseColor($('lcol').value);
+    links[i].style.color = cols.lcol;
    }
   }
  }
 
- highlightColor = parseColor($('hcol').value);
- $('getlast').style.color = parseColor($('lcol').value);
+ highlightColor = cols.hcol;
+ $('getlast').style.color = cols.lcol;
  setCookie("tColor", $('tcol').value);
  setCookie("bColor", $('bcol').value);
  setCookie("fColor", $('fcol').value);
@@ -681,7 +718,7 @@ function setCookie(name,value) {
  }
 }
 
-function getCookie(name) {
+function getCookie(name, fallback) {
  if (window.localStorage !== undefined) {
   var value = window.localStorage.getItem(name);
   if (value != null) return value;
@@ -702,7 +739,7 @@ function getCookie(name) {
    } 
   }
  }
- return null;
+ return (fallback === undefined ? null : fallback);
 }
 
 function saveSession() {
@@ -864,35 +901,50 @@ function getStats(recalc) {
   sessionmean = (numdnf == times.length) ? -1 : (sessionsum / (times.length - numdnf));
  }
 
+ function section(header, opts) {
+  return `<div class="section_hdr">${header}</div>` +
+    Object.keys(opts).map((name) => `<div class="section_left">${name}</div>${opts[name]}<br>`).join('');
+ }
+
+  function getentry({start, nsolves, id, time: [time, sigma]}) {
+    return `<span onclick='setHighlight(${start}, ${nsolves}, ${id});loadList();' class='a'>
+      ${pretty(time)}
+    </span>` + (sigma ? `(&sigma; = ${trim(sigma, 2)})` : '');
+  }
+ function getsection(name, curr, best) {
+  return section(name, {
+    current: getentry(curr), best: getentry(best)
+  });
+ }
+
  var s = "stats: (<span id='hidestats' onclick='toggleStatView()' class='a'>" + (viewstats?"hide":"show") + "</span>)<br>";
  s += "number of times: " + (times.length - numdnf) + "/" + times.length;
  if (viewstats) {
-  s += "<br>best time: <span onclick='setHighlight(" + bestTimeIndex + ",1,0);loadList();' class='a'>";
-  s += pretty(bestTime) + "<\/span><br>worst time: <span onclick='setHighlight(" + worstTimeIndex;
-  s += ",1,1);loadList();' class='a'>" + pretty(worstTime) + "<\/span><br>";
-  if (useMoN==1) {
-   if (times.length >= moSize) {
-    s += "<br>current mo" + moSize + ": <span onclick='setHighlight(" + (times.length - moSize);
-    s += "," + moSize + "," + moSize + "2);loadList();' class='a'>" + pretty(lastMo[0]);
-    s += "<\/span> (&sigma; = " + trim(lastMo[1], 2) + ")<br>";
-    s += "best mo" + moSize + ": <span onclick='setHighlight(" + bestMoIndex;
-    s += "," + moSize + "," + moSize + "3);loadList();' class='a'>" + pretty(bestMo[0]);
-    s += "<\/span> (&sigma; = " + trim(bestMo[1], 2) + ")<br>";
-   }
+  s += section("time", {
+    best: getentry({start: bestTimeIndex, nsolves: 1, id: 0, time: [bestTime]}),
+    worst: getentry({start: worstTimeIndex, nsolves: 1, id: 1, time: [worstTime]}),
+  });
+  if (useMoN==1 && times.length >= moSize) {
+    s += getsection("mo"+moSize, {
+      time: lastMo, start: times.length - moSize, nsolves: moSize, id: moSize + '2'
+    }, {
+      time: bestMo, start: bestMoIndex, nsolves: moSize, id: moSize + '3'
+    });
   }
   for (var j = 0; j < avgSizes2.length; j++) {
    if (times.length >= avgSizes2[j]) {
-    s += "<br>current avg" + avgSizes2[j] + ": <span onclick='setHighlight(" + (times.length - avgSizes2[j]);
-    s += "," + avgSizes2[j] + "," + avgSizes2[j] + "1);loadList();' class='a'>" + pretty(lastAvg[j][0]);
-    s += "<\/span> (&sigma; = " + trim(lastAvg[j][1], 2) + ")<br>";
-    s += "best avg" + avgSizes2[j] + ": <span onclick='setHighlight(" + bestAvgIndex[j];
-    s += "," + avgSizes2[j] + "," + avgSizes2[j] + "0);loadList();' class='a'>" + pretty(bestAvg[j][0]);
-    s += "<\/span> (&sigma; = " + trim(bestAvg[j][1], 2) + ")<br>";
+    s += getsection("avg"+avgSizes2[j], {
+      time: lastAvg[j], start: times.length - avgSizes2[j], nsolves: avgSizes2[j], id: avgSizes2[j] + '1'
+    }, {
+      time: bestAvg[j], start: bestAvgIndex[j], nsolves: avgSizes2[j], id: avgSizes2[j] + '0'
+    });
    }
   }
-  
-  s += "<br>session avg: <span onclick='setHighlight(0," + times.length + ",2);loadList();' class='a'>";
-  s += pretty(sessionavg[0]) + "<\/span> (&sigma; = " + trim(sessionavg[1], 2) + ")<br>session mean: " + pretty(sessionmean);
+
+  s += section("session", {
+    avg: getentry({ start: 0, nsolves: times.length, id: 2, time: sessionavg }),
+    mean: getentry({ start: 0, nsolves: times.length, id: 2, time: [sessionmean] }),
+  });
  }
  $('stats').innerHTML = s;
  var window = $('stats');

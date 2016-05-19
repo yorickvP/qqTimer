@@ -46,7 +46,7 @@
    <td style="width: 15em;">
     <div id="theList" style="overflow-y: scroll; height: 16em;"></div>
    </td>
-   <td style="width: 15em;">
+   <td style="width: 18em;">
     <div id="stats" style="overflow-y: scroll; height: 16em;"></div>
    </td>
   </tr>
@@ -65,12 +65,12 @@
            <span onclick="setCookie(&#39;style&#39;,1);window.location.reload();" class="a">Tamanas</span>
    </td><td align="right">
     monospace scrambles are <span id="monospace" onclick="toggleMono()" class="a">off</span><br>
-    top bar color: #<input id="tcol" value="00ff00" size="6" maxlength="6" onchange="changeColor()"><br>
-    background color: #<input id="bcol" value="white" size="6" maxlength="6" onchange="changeColor()"><br>
-    text color: #<input id="fcol" value="black" size="6" maxlength="6" onchange="changeColor()"><br>
-    link color: #<input id="lcol" value="blue" size="6" maxlength="6" onchange="changeColor()"><br>
-    highlight color: #<input id="hcol" value="yellow" size="6" maxlength="6" onchange="changeColor()"><br>
-    memorization colour: #<input id="memcol" value="green" size="6" maxlength="6" onchange="changeColor()"><br>
+    top bar color: <span id="tcol_ex">#</span><input id="tcol" value="00ff00" size="6" maxlength="6" onchange="changeColor()"><br>
+    background color: <span id="bcol_ex">#</span><input id="bcol" value="white" size="6" maxlength="6" onchange="changeColor()"><br>
+    text color: <span id="fcol_ex">#</span><input id="fcol" value="black" size="6" maxlength="6" onchange="changeColor()"><br>
+    link color: <span id="lcol_ex">#</span><input id="lcol" value="blue" size="6" maxlength="6" onchange="changeColor()"><br>
+    highlight color: <span id="hcol_ex">#</span><input id="hcol" value="yellow" size="6" maxlength="6" onchange="changeColor()"><br>
+    memorization colour: <span id="memcol_ex">#</span><input id="memcol" value="green" size="6" maxlength="6" onchange="changeColor()"><br>
     <span class="a" onclick="resetColors()">reset</span> colors to default<br>
 	<span class="a" onclick="toggleNightMode()">toggle</span> night mode<br>
    </td></tr></tbody></table>
