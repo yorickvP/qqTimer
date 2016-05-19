@@ -1,4 +1,4 @@
-﻿/* jshint esversion: 6, browser: true, -W041 */
+﻿/* jshint esversion: 6, browser: true, -W041, undef: true */
 var startTime;
 var curTime;
 var inspectionTime;
@@ -561,8 +561,8 @@ function decreaseSize() {
 function applyTimerSize() {
   var timerSize = settings.timerSize;
  $('theTime').style.fontSize = timerSize + "em";
- $('theList').style.height = Math.max(20, (timerSize * 1.5)) + "em";
- $('stats').style.height = Math.max(20, (timerSize * 1.5)) + "em";
+ $('theList').style.height = Math.max(21, (timerSize * 1.5)) + "em";
+ $('stats').style.height = Math.max(21, (timerSize * 1.5)) + "em";
 }
 
 function increaseScrambleSize() {
