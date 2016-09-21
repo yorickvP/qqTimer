@@ -316,6 +316,8 @@ function getTime(note) {
  $('theTime').innerHTML = pretty(time);
  clearHighlight();
  loadList();
+ var event = new CustomEvent('cubetime', {detail: time + (note ? 2000 : 0)});
+ document.body.dispatchEvent(event);
  getStats(true); // should be false, but it doesn't hurt
 }
 
